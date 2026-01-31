@@ -20,4 +20,4 @@ An autonomous agent that proposes plans, asks for approval, and executes tools.
 Python • LLM APIs • Agent Design • Prompt Engineering • GitHub
 
 ## 📫 Contact
-LinkedIn: <add yours>
+LinkedIn: www.linkedin.com/in/mohammed-inabah-khan-0696ba3a5
