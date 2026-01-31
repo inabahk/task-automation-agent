@@ -39,4 +39,3 @@ def execute(tool_name, args):
         return TOOLS[tool_name](**args)
     else:
         return "Unknown tool."
-
