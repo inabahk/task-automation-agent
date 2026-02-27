@@ -9,7 +9,7 @@ This repository contains hands-on projects demonstrating:
 - Tool usage & safety
 - Data-driven assistants
 
-## 📂 Projects
+## 📂Projects
 
 ### 🤖 Task Automation Agent
 An autonomous agent that proposes plans, asks for approval, and executes tools.
