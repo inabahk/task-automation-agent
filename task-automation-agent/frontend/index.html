@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Task Automation Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --border-bright: #2d2d45;
+    --accent: #7c6af7;
+    --accent2: #4ecdc4;
+    --accent3: #ff6b6b;
+    --warn: #f9c74f;
+    --text: #e8e8f0;
+    --text-dim: #6b6b8a;
+    --text-mid: #9999b8;
+    --success: #56cf8e;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124,106,247,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,106,247,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Header ── */
+  header {
+    margin-bottom: 48px;
+  }
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 3px 10px;
+    border-radius: 2px;
+    margin-bottom: 16px;
+    font-family: var(--mono);
+  }
+  h1 {
+    font-family: var(--sans);
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+  h1 span { color: var(--accent); }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    max-width: 500px;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--border-bright); }
+
+  .card-label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Input ── */
+  .task-input-row {
+    display: flex;
+    gap: 10px;
+  }
+  textarea {
+    flex: 1;
+    background: #0d0d14;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 14px 16px;
+    resize: none;
+    height: 80px;
+    outline: none;
+    transition: border-color 0.2s;
+    line-height: 1.6;
+  }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--text-dim); }
+
+  /* ── Buttons ── */
+  .btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 12px 22px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:not(:disabled):hover {
+    background: #9380ff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(124,106,247,0.3);
+  }
+  .btn-success {
+    background: var(--success);
+    color: #0a0a0f;
+  }
+  .btn-success:not(:disabled):hover { background: #6bdfaa; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:not(:disabled):hover {
+    border-color: var(--border-bright);
+    color: var(--text);
+  }
+  .btn-danger {
+    background: transparent;
+    color: var(--accent3);
+    border: 1px solid rgba(255,107,107,0.25);
+  }
+  .btn-danger:not(:disabled):hover {
+    background: rgba(255,107,107,0.08);
+  }
+
+  /* ── Step Plan ── */
+  .steps-list { list-style: none; }
+  .step-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .step-item:last-child { border-bottom: none; }
+
+  .step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--border-bright);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .step-body { flex: 1; }
+  .step-tool {
+    font-size: 11px;
+    color: var(--accent2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .step-desc {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 6px;
+  }
+  .step-risk {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .risk-low { background: rgba(86,207,142,0.1); color: var(--success); }
+  .risk-medium { background: rgba(249,199,79,0.1); color: var(--warn); }
+  .risk-high { background: rgba(255,107,107,0.1); color: var(--accent3); }
+
+  .step-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+  }
+  .toggle {
+    position: relative;
+    width: 34px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+  .toggle input { display: none; }
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    background: var(--border-bright);
+    border-radius: 9px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .toggle input:checked + .toggle-track { background: var(--accent); }
+  .toggle-thumb {
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 14px; height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    pointer-events: none;
+  }
+  .toggle input:checked ~ .toggle-thumb { transform: translateX(16px); }
+  .toggle-label { font-size: 11px; color: var(--text-dim); }
+
+  /* ── Approval Bar ── */
+  .approval-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .approval-info {
+    flex: 1;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .approval-info strong { color: var(--text); }
+
+  /* ── Results ── */
+  .result-item {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .result-item:last-child { border-bottom: none; }
+  .result-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .result-status {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-success { background: var(--success); box-shadow: 0 0 8px var(--success); }
+  .status-error { background: var(--accent3); }
+  .status-skipped { background: var(--border-bright); }
+  .result-tool {
+    font-size: 11px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .result-desc { font-size: 12px; color: var(--text-dim); margin-left: auto; }
+  .result-timestamp { font-size: 10px; color: var(--text-dim); opacity: 0.5; }
+  .result-body {
+    background: #0d0d14;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--text-mid);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* ── Status pills ── */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 3px;
+    margin-left: 12px;
+  }
+  .pill-pending { background: rgba(249,199,79,0.1); color: var(--warn); border: 1px solid rgba(249,199,79,0.2); }
+  .pill-executing { background: rgba(124,106,247,0.1); color: var(--accent); border: 1px solid rgba(124,106,247,0.2); }
+  .pill-completed { background: rgba(86,207,142,0.1); color: var(--success); border: 1px solid rgba(86,207,142,0.2); }
+  .pill-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  /* ── Loading spinner ── */
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border-bright);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Misc ── */
+  .section-heading {
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hidden { display: none !important; }
+  .api-note {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 10px;
+    line-height: 1.6;
+    padding: 10px 14px;
+    background: rgba(124,106,247,0.05);
+    border: 1px solid rgba(124,106,247,0.15);
+    border-radius: 5px;
+  }
+  .api-note code {
+    color: var(--accent2);
+    background: rgba(78,205,196,0.1);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  .example-tasks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .example-chip {
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    background: transparent;
+    border: 1px solid var(--border-bright);
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: var(--mono);
+    transition: all 0.15s;
+  }
+  .example-chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Animate in */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in { animation: fadeUp 0.3s ease forwards; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="tag">AI/ML Project</div>
+    <h1>Task <span>Automation</span><br>Agent</h1>
+    <p class="subtitle">
+      An autonomous AI agent that proposes a plan, waits for your approval,
+      then executes tools step-by-step — with full human-in-the-loop control.
+    </p>
+  </header>
+
+  <!-- Step 1: Input -->
+  <div class="card" id="input-card">
+    <div class="card-label">01 — Describe your task</div>
+    <div class="task-input-row">
+      <textarea id="task-input" placeholder="e.g. Search for the latest AI research papers and save a summary to a file…" rows="3"></textarea>
+      <button class="btn btn-primary" id="plan-btn" onclick="submitTask()">
+        Generate Plan →
+      </button>
+    </div>
+    <div class="example-tasks">
+      <span class="example-chip" onclick="fillExample(this)">Search for AI trends and summarize</span>
+      <span class="example-chip" onclick="fillExample(this)">Get weather in Mumbai</span>
+      <span class="example-chip" onclick="fillExample(this)">Calculate 1234 * 5678</span>
+      <span class="example-chip" onclick="fillExample(this)">Draft an email about project update</span>
+      <span class="example-chip" onclick="fillExample(this)">Research quantum computing and create file</span>
+    </div>
+  </div>
+
+  <!-- Step 2: Plan Review -->
+  <div class="card hidden" id="plan-card">
+    <div class="card-label">02 — Review proposed plan</div>
+    <div class="section-heading">
+      Execution Plan
+      <span class="status-pill pill-pending" id="plan-status-pill">
+        <span class="pill-dot"></span>Pending Approval
+      </span>
+    </div>
+    <p style="font-size:12px; color:var(--text-dim); margin: 8px 0 20px;">
+      Toggle each step on/off. Disabled steps will be skipped.
+    </p>
+    <ul class="steps-list" id="steps-list"></ul>
+    <div class="approval-bar">
+      <div class="approval-info">
+        <strong id="approved-count">0</strong> of <strong id="total-count">0</strong> steps approved
+      </div>
+      <button class="btn btn-ghost" onclick="toggleAll(false)">Deselect All</button>
+      <button class="btn btn-ghost" onclick="toggleAll(true)">Select All</button>
+      <button class="btn btn-success" id="execute-btn" onclick="executeTask()">
+        ▶ Execute Approved Steps
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 3: Results -->
+  <div class="card hidden" id="results-card">
+    <div class="card-label">03 — Execution results</div>
+    <div class="section-heading" id="results-heading">
+      Results
+      <span class="status-pill pill-executing" id="results-status-pill">
+        <span class="pill-dot"></span>Running...
+      </span>
+    </div>
+    <div id="results-list" style="margin-top: 20px;"></div>
+    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+      <button class="btn btn-ghost" onclick="resetAgent()" style="font-size:11px;">
+        ↩ Run another task
+      </button>
+    </div>
+  </div>
+
+  <!-- API Note -->
+  <div class="api-note">
+    <strong style="color: var(--text);">Backend API running at <code>localhost:8000</code></strong><br>
+    Endpoints: <code>POST /plan</code> → <code>POST /approve</code> → <code>POST /execute/{id}</code><br>
+    Interactive docs at <code>/docs</code> — Tools: web_search, calculate, create_file, send_email_draft, fetch_weather, list_files, summarize_text
+  </div>
+
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────
+const API = '';  // same origin; change to http://localhost:8000 if running separately
+let currentSession = null;
+let stepToggles = {};
+
+// ── Helpers ────────────────────────────────────────────
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+function $(id)    { return document.getElementById(id); }
+
+function fillExample(chip) {
+  $('task-input').value = chip.textContent;
+  $('task-input').focus();
+}
+
+function updateApprovalCount() {
+  const total = Object.keys(stepToggles).length;
+  const approved = Object.values(stepToggles).filter(Boolean).length;
+  $('approved-count').textContent = approved;
+  $('total-count').textContent = total;
+  $('execute-btn').disabled = approved === 0;
+}
+
+function toggleAll(state) {
+  Object.keys(stepToggles).forEach(k => {
+    stepToggles[k] = state;
+    const el = document.getElementById('toggle-' + k);
+    if (el) el.checked = state;
+  });
+  updateApprovalCount();
+}
+
+function riskClass(r) {
+  if (r === 'medium') return 'risk-medium';
+  if (r === 'high') return 'risk-high';
+  return 'risk-low';
+}
+
+// ── Step 1: Generate Plan ──────────────────────────────
+async function submitTask() {
+  const task = $('task-input').value.trim();
+  if (!task) { $('task-input').focus(); return; }
+
+  const btn = $('plan-btn');
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API}/plan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ task }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Failed to generate plan');
+
+    currentSession = data;
+    renderPlan(data.plan);
+    show('plan-card');
+    $('plan-card').classList.add('animate-in');
+    $('plan-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (err) {
+    alert('Error: ' + err.message);
+  } finally {
+    btn.innerHTML = 'Generate Plan →';
+    btn.disabled = false;
+  }
+}
+
+function renderPlan(plan) {
+  stepToggles = {};
+  const list = $('steps-list');
+  list.innerHTML = '';
+
+  plan.forEach(step => {
+    stepToggles[step.step] = true;
+
+    const li = document.createElement('li');
+    li.className = 'step-item';
+    li.innerHTML = `
+      <div class="step-num">${step.step}</div>
+      <div class="step-body">
+        <div class="step-tool">${step.tool}</div>
+        <div class="step-desc">${step.description}</div>
+        <span class="step-risk ${riskClass(step.risk)}">${step.risk} risk</span>
+      </div>
+      <div class="step-toggle">
+        <label class="toggle">
+          <input type="checkbox" id="toggle-${step.step}" checked
+            onchange="stepToggles[${step.step}] = this.checked; updateApprovalCount()">
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+        <span class="toggle-label">approve</span>
+      </div>
+    `;
+    list.appendChild(li);
+  });
+
+  updateApprovalCount();
+}
+
+// ── Step 2: Approve ────────────────────────────────────
+async function executeTask() {
+  const approvedSteps = Object.entries(stepToggles)
+    .filter(([,v]) => v)
+    .map(([k]) => parseInt(k));
+
+  const btn = $('execute-btn');
+  btn.innerHTML = '<span class="spinner"></span> Approving...';
+  btn.disabled = true;
+
+  try {
+    // Approve
+    const approveRes = await fetch(`${API}/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: currentSession.session_id, approved_steps: approvedSteps }),
+    });
+    const approveData = await approveRes.json();
+    if (!approveRes.ok) throw new Error(approveData.detail || 'Approval failed');
+
+    // Update plan pill
+    $('plan-status-pill').className = 'status-pill pill-executing';
+    $('plan-status-pill').innerHTML = '<span class="pill-dot"></span>Approved';
+
+    // Show results card
+    show('results-card');
+    $('results-card').classList.add('animate-in');
+    $('results-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    btn.innerHTML = '<span class="spinner"></span> Executing...';
+
+    // Execute
+    const execRes = await fetch(`${API}/execute/${currentSession.session_id}`, {
+      method: 'POST',
+    });
+    const execData = await execRes.json();
+    if (!execRes.ok) throw new Error(execData.detail || 'Execution failed');
+
+    renderResults(execData.results);
+
+    $('results-status-pill').className = 'status-pill pill-completed';
+    $('results-status-pill').innerHTML = '<span class="pill-dot"></span>Completed';
+    $('plan-status-pill').className = 'status-pill pill-completed';
+    $('plan-status-pill').innerHTML = '<span class="pill-dot"></span>Done';
+    btn.innerHTML = '✓ Executed';
+
+  } catch (err) {
+    alert('Error: ' + err.message);
+    btn.innerHTML = '▶ Execute Approved Steps';
+    btn.disabled = false;
+  }
+}
+
+function renderResults(results) {
+  const list = $('results-list');
+  list.innerHTML = '';
+
+  results.forEach(r => {
+    const statusClass = r.status === 'success' ? 'status-success'
+                      : r.status === 'skipped' ? 'status-skipped'
+                      : 'status-error';
+    const div = document.createElement('div');
+    div.className = 'result-item animate-in';
+    div.innerHTML = `
+      <div class="result-header">
+        <div class="result-status ${statusClass}"></div>
+        <span class="result-tool">${r.tool}</span>
+        <span class="result-desc">${r.description}</span>
+        <span class="result-timestamp">${r.timestamp || ''}</span>
+      </div>
+      <div class="result-body">${r.result}</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// ── Reset ──────────────────────────────────────────────
+function resetAgent() {
+  currentSession = null;
+  stepToggles = {};
+  $('task-input').value = '';
+  hide('plan-card');
+  hide('results-card');
+  $('steps-list').innerHTML = '';
+  $('results-list').innerHTML = '';
+  $('plan-btn').innerHTML = 'Generate Plan →';
+  $('plan-btn').disabled = false;
+  $('execute-btn').innerHTML = '▶ Execute Approved Steps';
+  $('execute-btn').disabled = false;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Enter key submits ──────────────────────────────────
+$('task-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.ctrlKey) submitTask();
+});
+</script>
+</body>
+</html>
