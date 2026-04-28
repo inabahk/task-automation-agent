@@ -1,5 +1,24 @@
 # 🤖 Task Automation Agent
 
+## 🎥 Demo
+
+👉 Live App: https://your-render-url.onrender.com  
+👉 Demo Video: https://your-video-link  
+
+### 🧪 Example Execution
+
+Input:
+"Search for AI trends and save summary"
+
+Generated Plan:
+1. web_search
+2. summarize_text
+3. create_file
+
+Output:
+- Summary generated
+- File saved successfully
+
 > An autonomous AI agent with **human-in-the-loop approval** — proposes a plan, waits for your review, then executes tools step by step.
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue?style=flat-square&logo=python)](https://python.org)
