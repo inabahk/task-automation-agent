@@ -3,7 +3,6 @@
 ## 🎥 Demo
 
 👉 Live App: https://task-automation-agent-4.onrender.com
-👉 Demo Video: https://your-video-link  
 
 ### 🧪 Example Execution
 
@@ -40,6 +39,12 @@ Interactive API Docs → https://task-automation-agent-4.onrender.com/docs
 4. **Agent executes approved steps** — runs tools and returns results
 
 ---
+## 💼 Why This Project Matters
+
+- Demonstrates real-world AI agent architecture  
+- Shows safe execution with human oversight  
+- Simulates production-level automation workflows  
+- Easily extensible to enterprise systems  
 
 ## 🛠️ Tools Available
 
